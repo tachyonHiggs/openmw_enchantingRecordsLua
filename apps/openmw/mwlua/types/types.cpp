@@ -224,6 +224,7 @@ namespace MWLua
         addProbeBindings(addType(ObjectTypeName::Probe, { ESM::REC_PROB }, ObjectTypeName::Item), context);
         addApparatusBindings(addType(ObjectTypeName::Apparatus, { ESM::REC_APPA }, ObjectTypeName::Item), context);
         addRepairBindings(addType(ObjectTypeName::Repair, { ESM::REC_REPA }, ObjectTypeName::Item), context);
+        addEnchantBindings(addType(ObjectTypeName::Enchantment, { ESM::REC_ENCH }, ObjectTypeName::Item), context);
 
         addActivatorBindings(addType(ObjectTypeName::Activator, { ESM::REC_ACTI }), context);
         addContainerBindings(addType(ObjectTypeName::Container, { ESM::REC_CONT }, ObjectTypeName::Lockable), context);

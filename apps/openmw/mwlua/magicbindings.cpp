@@ -234,6 +234,7 @@ namespace MWLua
                     { "Curse", ESM::Spell::ST_Curse },
                     { "Power", ESM::Spell::ST_Power },
                 }));
+        // TO DO: See if this needs to be removed
         magicApi["ENCHANTMENT_TYPE"]
             = LuaUtil::makeStrictReadOnly(LuaUtil::tableFromPairs<std::string_view, ESM::Enchantment::Type>(state,
                 {
@@ -256,9 +257,10 @@ namespace MWLua
         magicApi["spells"] = LuaUtil::makeReadOnly(spells);
 
         // Enchantment store
+        // TO DO: See if this needs to be removed
         sol::table enchantments(state, sol::create);
         addRecordFunctionBinding<ESM::Enchantment>(enchantments, context);
-        magicApi["enchantments"] = LuaUtil::makeReadOnly(enchantments);
+        magicApi["enchantments"] = LuaUtil::makeReadOnly(enchantments); // NEED TO REMOVE THIS GUY FOR SURE
 
         // MagicEffect store
         sol::table magicEffects(state, sol::create);
@@ -319,6 +321,7 @@ namespace MWLua
         });
 
         // Enchantment record
+        // TO DO: See if this needs to be removed, copied it to enchantment type
         auto enchantT = state.new_usertype<ESM::Enchantment>("ESM3_Enchantment");
         enchantT[sol::meta_function::to_string] = [](const ESM::Enchantment& rec) -> std::string {
             return "ESM3_Enchantment[" + rec.mId.toDebugString() + "]";

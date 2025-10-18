@@ -29,12 +29,6 @@ namespace
         else
             enchantment.blank();
 
-        if (rec["mwscript"] != sol::nil)
-        {
-            std::string_view scriptId = rec["mwscript"].get<std::string_view>();
-            weapon.mScript = ESM::RefId::deserializeText(scriptId);
-        }
-
         if (rec["type"] != sol::nil)
         {
             int enchantmentType = rec["type"].get<int>();
@@ -44,15 +38,14 @@ namespace
                 throw std::runtime_error("Invalid Enchantment Type provided: " + std::to_string(enchantmentType));
         }
         if (rec["cost"] != sol::nil)
-            enchantment.mData.mWeight = rec["weight"];
+            enchantment.mData.mCost = rec["cost"];
         if (rec["charge"] != sol::nil)
-            enchantment.mData.mValue = rec["value"];
+            enchantment.mData.mCharge = rec["charge"];
         if (rec["flags"] != sol::nil)
-            enchantment.mData.mHealth = rec["health"];
+            enchantment.mData.mFlags = rec["flags"];
         if (rec["effects"] != sol::nil)
-            enchantment.mData.mSpeed = rec["speed"];
-        if (rec["deleted"] != sol::nil)
-            enchantment.mData.mReach = rec["reach"];
+            enchantment.mEffects = rec["effects"]; // TO DO Unsure about effects
+
         return enchantment;
     }
 }
@@ -76,44 +69,22 @@ namespace MWLua
         addRecordFunctionBinding<ESM::Enchantment>(enchantment, context);
         enchantment["createRecordDraft"] = tableToEnchantment;
 
-        sol::usertype<ESM::Weapon> record = lua.new_usertype<ESM::Weapon>("ESM3_Weapon");
-        record[sol::meta_function::to_string]
-            = [](const ESM::Weapon& rec) -> std::string { return "ESM3_Weapon[" + rec.mId.toDebugString() + "]"; };
-        record["id"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> std::string { return rec.mId.serializeText(); });
-        record["name"] = sol::readonly_property([](const ESM::Weapon& rec) -> std::string { return rec.mName; });
-        addModelProperty(record);
-        record["icon"] = sol::readonly_property([vfs](const ESM::Weapon& rec) -> std::string {
-            return Misc::ResourceHelpers::correctIconPath(rec.mIcon, vfs);
-        });
-        record["enchant"] = sol::readonly_property(
-            [](const ESM::Weapon& rec) -> sol::optional<std::string> { return LuaUtil::serializeRefId(rec.mEnchant); });
-        record["mwscript"] = sol::readonly_property(
-            [](const ESM::Weapon& rec) -> sol::optional<std::string> { return LuaUtil::serializeRefId(rec.mScript); });
-        record["isMagical"] = sol::readonly_property(
-            [](const ESM::Weapon& rec) -> bool { return rec.mData.mFlags & ESM::Weapon::Magical; });
-        record["isSilver"] = sol::readonly_property(
-            [](const ESM::Weapon& rec) -> bool { return rec.mData.mFlags & ESM::Weapon::Silver; });
-        record["weight"] = sol::readonly_property([](const ESM::Weapon& rec) -> float { return rec.mData.mWeight; });
-        record["value"] = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mValue; });
-        record["type"] = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mType; });
-        record["health"] = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mHealth; });
-        record["speed"] = sol::readonly_property([](const ESM::Weapon& rec) -> float { return rec.mData.mSpeed; });
-        record["reach"] = sol::readonly_property([](const ESM::Weapon& rec) -> float { return rec.mData.mReach; });
-        record["enchantCapacity"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> float { return rec.mData.mEnchant * 0.1f; });
-        record["chopMinDamage"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mChop[0]; });
-        record["chopMaxDamage"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mChop[1]; });
-        record["slashMinDamage"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mSlash[0]; });
-        record["slashMaxDamage"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mSlash[1]; });
-        record["thrustMinDamage"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mThrust[0]; });
-        record["thrustMaxDamage"]
-            = sol::readonly_property([](const ESM::Weapon& rec) -> int { return rec.mData.mThrust[1]; });
+        sol::usertype<ESM::Enchantment> record = lua.new_usertype<ESM::Enchantment>("ESM3_Enchantment");
+        record[sol::meta_function::to_string] = [](const ESM::Enchantment& rec) -> std::string {
+            return "ESM3_Enchantment[" + rec.mId.toDebugString() + "]";
+        };
+        record["id"] = sol::readonly_property([](const ESM::Enchantment& rec) { return rec.mId.serializeText(); });
+        enchantT["effects"]
+            = sol::readonly_property([lua = state.lua_state()](const ESM::Enchantment& rec) -> sol::table {
+                  return effectParamsListToTable(lua, rec.mEffects.mList);
+              });
+        record["type"] = sol::readonly_property([](const ESM::Enchantment& rec) -> int { return rec.mData.mType; });
+        record["cost"] = sol::readonly_property([](const ESM::Enchantment& rec) -> int { return rec.mData.mCost; });
+        record["charge"]
+            = sol::readonly_property([](const ESM::Enchantment& rec) -> int { return rec.mData.mCharge; });
+        record["autocalcFlag"] = sol::readonly_property(
+            [](const ESM::Enchantment& rec) -> bool { return !!(rec.mData.mFlags & ESM::Enchantment::Autocalc); });
+
     }
 
 }
